@@ -1,0 +1,16 @@
+# Ambiente Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Dados de execução (locais por natureza)
+logs/
+screenshots/
+data/processados.log
+data/chrome_profile/
+
+# Gerado automaticamente pelo instalador
+Rodar Bot.bat
+
+# .env e data/filtro_alunos.xlsx são versionados (repositório privado)
