@@ -5,7 +5,7 @@ Conecta ao seu Google Chrome real (evita bloqueio do Cloudflare) e processa uma 
 
 ---
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 | Requisito | Versão recomendada |
 |---|---|
@@ -18,7 +18,7 @@ Conecta ao seu Google Chrome real (evita bloqueio do Cloudflare) e processa uma 
 
 ---
 
-## 🚀 Instalação Rápida (Recomendado)
+## Instalação Rápida (Recomendado)
 
 Se você está em um computador novo, siga estes passos:
 
@@ -29,7 +29,7 @@ Se você está em um computador novo, siga estes passos:
 
 ---
 
-## ⚙️ Configuração
+## Configuração
 
 ### 1. Preparar a planilha
 Coloque o arquivo `filtro_alunos.xlsx` dentro da pasta `data/`.  
@@ -44,7 +44,7 @@ O instalador cria um arquivo `.env` para você. Abra-o com o Bloco de Notas e co
 
 ---
 
-## ▶️ Como executar o bot
+## Como executar o bot
 
 Basta clicar duas vezes no arquivo:
 **`Rodar Bot.bat`**
@@ -74,7 +74,7 @@ Basta clicar duas vezes no arquivo:
 
 ---
 
-## 🔁 Execuções seguintes (mesmo dia)
+## Execuções seguintes (mesmo dia)
 
 Se o bot já foi executado hoje e você quer rodar novamente para novos alunos:
 
@@ -86,7 +86,7 @@ Se o bot já foi executado hoje e você quer rodar novamente para novos alunos:
 
 ---
 
-## 🖼️ Screenshots de erro
+## Screenshots de erro
 
 Em caso de falha em um aluno, o bot salva automaticamente uma captura de tela em:
 
@@ -98,7 +98,7 @@ Use essas imagens para identificar o que travou.
 
 ---
 
-## ❓ Problemas comuns
+## Problemas comuns
 
 | Problema | Solução |
 |---|---|
@@ -111,7 +111,7 @@ Use essas imagens para identificar o que travou.
 
 ---
 
-## 📁 Estrutura do projeto
+## Estrutura do projeto
 
 ```
 hyper_bot/
