@@ -76,12 +76,7 @@ def carregar_alunos() -> Generator[Aluno, None, None]:
             .replace(")", "")
         )
 
-        # Garante que começa com código do país
-        if not telefone.startswith("+"):
-            if telefone.startswith("55"):
-                telefone = "+" + telefone
-            else:
-                telefone = "+55" + telefone
+
 
         total += 1
         yield Aluno(telefone=telefone, nome=nome, matricula=matricula, linha=idx)
