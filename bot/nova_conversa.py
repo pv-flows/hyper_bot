@@ -8,8 +8,6 @@ from bot.config import Config
 from bot.planilha import Aluno
 from bot.utils import delay_humano, tirar_screenshot
 
-TIMEOUT = 15_000
-
 
 def criar_conversa(page: Page, aluno: Aluno) -> bool:
     logger.info(f"Iniciando conversa para {aluno.nome} ({aluno.telefone})")
@@ -40,11 +38,11 @@ def criar_conversa(page: Page, aluno: Aluno) -> bool:
 def _clicar_btn_nova_conversa(page: Page):
     logger.debug("Clicando no botão '+'...")
     btn = page.locator("button.button-add-chat").first
-    btn.wait_for(state="visible", timeout=TIMEOUT)
+    btn.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     delay_humano(0.5, 1.0)
     btn.click()
     # Aguarda o modal abrir confirmando que o campo department apareceu
-    page.locator('input[name="department"]').wait_for(state="visible", timeout=TIMEOUT)
+    page.locator('input[name="department"]').wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     delay_humano(0.8, 1.2)
 
 
@@ -57,18 +55,18 @@ def _selecionar_lista(page: Page, campo_seletor: str, valor: str, rotulo: str):
     logger.debug(f"Selecionando {rotulo}: {valor}")
 
     campo = page.locator(campo_seletor).first
-    campo.wait_for(state="visible", timeout=TIMEOUT)
+    campo.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     delay_humano(0.4, 0.8)
     campo.click()
     delay_humano(0.8, 1.5)
 
     # Aguarda qualquer opção aparecer na lista
-    page.locator('li[role="option"]').first.wait_for(state="visible", timeout=TIMEOUT)
+    page.locator('li[role="option"]').first.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     delay_humano(0.3, 0.6)
 
     # Clica na opção que contém o texto correto
     opcao = page.locator(f'li[role="option"]:has-text("{valor[:20]}")').first
-    opcao.wait_for(state="visible", timeout=TIMEOUT)
+    opcao.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     opcao.click()
     delay_humano(0.5, 1.0)
     logger.debug(f"{rotulo} selecionado.")
@@ -77,12 +75,12 @@ def _selecionar_lista(page: Page, campo_seletor: str, valor: str, rotulo: str):
 def _preencher_campo(page: Page, seletor: str, valor: str, rotulo: str, tab_apos: bool = False):
     logger.debug(f"Preenchendo {rotulo}: {valor}")
     campo = page.locator(seletor).first
-    campo.wait_for(state="visible", timeout=TIMEOUT)
+    campo.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     delay_humano(0.3, 0.6)
-    campo.click()
-    campo.fill("")
-    delay_humano(0.2, 0.4)
-    campo.type(valor, delay=80)
+    
+    # Preenchimento rápido e direto (como um Ctrl+V)
+    campo.fill(valor)
+    
     if tab_apos:
         delay_humano(0.1, 0.2)
         campo.press("Tab")  # fecha popup de sugestão e vai para o próximo campo
@@ -92,15 +90,15 @@ def _preencher_campo(page: Page, seletor: str, valor: str, rotulo: str, tab_apos
 def _confirmar(page: Page):
     logger.debug("Clicando em Confirmar...")
     btn = page.locator("button#form-submit").first
-    btn.wait_for(state="visible", timeout=TIMEOUT)
+    btn.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
     delay_humano(0.5, 1.0)
     btn.click()
     
-    # NOVO: Aguarda 5s para o processamento do Hyper e verificação de conflito
-    # (Ex: contato já sendo atendido por outro operador)
-    logger.debug("Aguardando 5s para confirmação do Hyper...")
-    # Usamos delay_humano para garantir uma espera mínima exata de 5s
-    delay_humano(5.0, 5.0)
+    logger.debug("Aguardando confirmação do Hyper...")
+    try:
+        btn.wait_for(state="hidden", timeout=6_000)
+    except PWTimeout:
+        pass
 
     # Se o modal/botão de submit ainda estiver visível, houve erro ou conflito
     if btn.is_visible():
@@ -155,13 +153,13 @@ def ativar_conversa(page: Page, aluno: Aluno) -> bool:
     try:
         # 1. Aguarda e clica no botão "Ativar conversa"
         btn_ativar = page.locator("button.button-send-hsm").first
-        btn_ativar.wait_for(state="visible", timeout=TIMEOUT)
+        btn_ativar.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
         delay_humano(0.8, 1.5)
         btn_ativar.click()
         delay_humano(0.8, 1.5)
 
         # 2. Aguarda o modal de template abrir
-        page.locator('input[name="hsm"]').wait_for(state="visible", timeout=TIMEOUT)
+        page.locator('input[name="hsm"]').wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
         delay_humano(0.5, 1.0)
 
         # 3. Clica no campo de template para abrir a lista
@@ -169,9 +167,9 @@ def ativar_conversa(page: Page, aluno: Aluno) -> bool:
         campo_hsm.click()
         delay_humano(0.8, 1.5)
 
-        # 4. Aguarda as opções e clica em "Início Atendimento Negociação"
-        opcao = page.locator('li[role="option"]:has-text("Início Atendimento Negociação")').first
-        opcao.wait_for(state="visible", timeout=TIMEOUT)
+        # 4. Aguarda as opções e clica no template configurado
+        opcao = page.locator(f'li[role="option"]:has-text("{Config.TEMPLATE_NOME}")').first
+        opcao.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
         delay_humano(0.3, 0.6)
         opcao.click()
 
@@ -187,51 +185,43 @@ def ativar_conversa(page: Page, aluno: Aluno) -> bool:
         # Atraso reduzido: tempo suficiente para o renderizador do browser captar o scroll
         delay_humano(0.4, 0.7)
 
-        # 6. Localiza e preenche o campo {{contact.name.split(' ')[0]}}
-        #    Buscamos todos os possíveis seletores em um único passo via OR do Playwright
-        dialog = page.locator('[role="dialog"]').first
+        # 6. Localiza o modal VISÍVEL e foca no campo correto sem enganos
+        dialog = page.locator('[role="dialog"]:visible').first
         
         seletor_unificado = (
-            'input[placeholder*="contact.name"], '
-            'input[placeholder*="{{contact"], '
-            'input[placeholder*="{{1}}"], '
-            'input[data-index="0"], '
-            'input[type="text"]:not([name="hsm"]):not([type="search"])'
+            'input:visible[placeholder*="contact.name"], '
+            'input:visible[placeholder*="{{contact"], '
+            'input:visible[placeholder*="{{1}}"], '
+            'input:visible[data-index="0"], '
+            'input:visible[type="text"]:not([name="hsm"]):not([type="search"])'
         )
         
         campo_param = dialog.locator(seletor_unificado).first
         
         try:
-            # Espera curta pois o modal já está aberto
-            campo_param.wait_for(state="attached", timeout=2_000)
-            logger.debug("Campo de parâmetro localizado com sucesso.")
+            campo_param.wait_for(state="visible", timeout=3_000)
+            logger.debug("Campo de parâmetro localizado com sucesso na tela.")
         except Exception:
-            raise Exception("Não foi possível localizar o campo de preenchimento do nome/matrícula.")
+            raise Exception("Não foi possível localizar o campo visível no modal para inserir o parâmetro.")
 
-        campo_param.scroll_into_view_if_needed()
-        delay_humano(0.1, 0.2)
-        
-        # force=True ignora elementos sobrepostos (prévia do template)
+        # Clique forçado direto, sem precisar de scroll ou Ctrl+A
         campo_param.click(force=True)
         delay_humano(0.1, 0.2)
         
-        # Ctrl+A seleciona o conteúdo padrão "{{contact.name.split(' ')[0]}}"
-        campo_param.press("Control+a")
-        
         # Valor a preencher: "Nome do Aluno - Matrícula"
         valor_param = f"{aluno.nome} - {aluno.matricula}" if aluno.matricula else aluno.nome
-        logger.debug(f"Preenchendo parâmetro: '{valor_param}'")
+        logger.debug(f"Preenchendo parâmetro de forma limpa: '{valor_param}'")
         
-        # Digitação rápida
-        campo_param.type(valor_param, delay=40)
+        # O .fill joga tudo de uma só vez, como um colar texto rápido
+        campo_param.fill(valor_param)
         delay_humano(0.3, 0.6)
 
         # 7. Clica em "Reabrir conversa"
         btn_reabrir = page.locator('button:has-text("Reabrir conversa")').first
-        btn_reabrir.wait_for(state="visible", timeout=TIMEOUT)
+        btn_reabrir.wait_for(state="visible", timeout=Config.TIMEOUT_ACAO)
         delay_humano(0.5, 1.0)
         btn_reabrir.click()
-        page.locator('button:has-text("Reabrir conversa")').wait_for(state="hidden", timeout=TIMEOUT)
+        page.locator('button:has-text("Reabrir conversa")').wait_for(state="hidden", timeout=Config.TIMEOUT_ACAO)
         delay_humano(1.0, 2.0)
 
         logger.success(f"Conversa ativada: {aluno.nome}")

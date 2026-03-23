@@ -19,10 +19,12 @@ def _get(key: str, default=None, obrigatorio: bool = False) -> str:
 class Config:
     # Login manual — sem necessidade de e-mail/senha
     HYPER_URL: str       = _get("HYPER_URL", "https://conversas.hyperflow.global/chats")
+    TIMEOUT_LOGIN_MANUAL: int = int(_get("TIMEOUT_LOGIN_MANUAL", "120"))
 
     # Conversa
     DEPARTAMENTO: str    = _get("DEPARTAMENTO", "Negociação")
     CANAL: str           = _get("CANAL", "+55 81 9179-4459 - SER Educacional - Negociacao (Negociação)")
+    TEMPLATE_NOME: str   = _get("TEMPLATE_NOME", "Início Atendimento Negociação")
 
     # Planilha
     PLANILHA_PATH: str   = _get("PLANILHA_PATH",    "data/filtro_alunos.xlsx")
@@ -38,6 +40,8 @@ class Config:
     # Comportamento
     DELAY_MIN: float    = float(_get("DELAY_MIN", "0.8"))
     DELAY_MAX: float    = float(_get("DELAY_MAX", "2.0"))
+    DELAY_DIGITACAO: int = int(_get("DELAY_DIGITACAO", "80"))
+    TIMEOUT_ACAO: int   = int(_get("TIMEOUT_ACAO", "15000"))
     MAX_TENTATIVAS: int = int(_get("MAX_TENTATIVAS", "3"))
     HEADLESS: bool      = _get("HEADLESS", "false").lower() == "true"
 

@@ -55,10 +55,14 @@ def fechar_chrome_existente():
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        time.sleep(2)
+        for _ in range(10):
+            filtro = subprocess.run(["tasklist", "/fi", "imagename eq chrome.exe"], capture_output=True, text=True)
+            if "chrome.exe" not in filtro.stdout.lower():
+                break
+            time.sleep(0.5)
         logger.info("Instâncias anteriores do Chrome encerradas.")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Erro ao tentar fechar o Chrome: {e}")
 
 
 def main():
@@ -106,7 +110,6 @@ def main():
     )
 
     logger.info("Aguardando Chrome inicializar...")
-    time.sleep(3)
 
     sucesso = 0
     falha   = 0

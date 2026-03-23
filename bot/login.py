@@ -10,9 +10,6 @@ from playwright.sync_api import Page, TimeoutError as PWTimeout
 
 from bot.config import Config
 
-# Tempo máximo (segundos) que o bot aguarda o login manual
-TIMEOUT_LOGIN_MANUAL = 120
-
 
 def fazer_login(page: Page) -> bool:
     """
@@ -45,17 +42,17 @@ def fazer_login(page: Page) -> bool:
     print("\n" + "=" * 55)
     print("  🔐  FAÇA O LOGIN NO NAVEGADOR QUE ACABOU DE ABRIR")
     print("      O bot continuará automaticamente após o login.")
-    print(f"      Você tem {TIMEOUT_LOGIN_MANUAL} segundos.")
+    print(f"      Você tem {Config.TIMEOUT_LOGIN_MANUAL} segundos.")
     print("=" * 55 + "\n")
 
-    logger.info(f"Aguardando login manual (timeout: {TIMEOUT_LOGIN_MANUAL}s)...")
+    logger.info(f"Aguardando login manual (timeout: {Config.TIMEOUT_LOGIN_MANUAL}s)...")
     logger.info(f"URL atual (login): {page.url}")
 
     try:
         # 1. Aguarda a URL mudar para /chats (sinal inicial de login OK)
         page.wait_for_url(
             "**/chats**",
-            timeout=TIMEOUT_LOGIN_MANUAL * 1000
+            timeout=Config.TIMEOUT_LOGIN_MANUAL * 1000
         )
         logger.info("URL /chats detectada. Aguardando interface carregar...")
 
