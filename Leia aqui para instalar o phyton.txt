@@ -1,3 +1,0 @@
-Use o comando abaixo no CMD para instalar o Phyton:
-
-winget install Python.Python.3.12
