@@ -1,83 +1,51 @@
 """
 login.py — Login MANUAL no Hyper (Hyperflow)
 
-O bot abre o navegador na página de login e aguarda o usuário
-fazer o login manualmente. Quando detecta que a tela de chats
-carregou, continua automaticamente.
+O bot abre o navegador e aguarda silenciosamente o usuário
+navegar para a URL correta e fazer o login. Quando detecta que a tela de chats
+carregou e o botão de nova conversa está visível, continua automaticamente.
 """
+import time
 from loguru import logger
-from playwright.sync_api import Page, TimeoutError as PWTimeout
+from playwright.sync_api import BrowserContext, Page
 
 from bot.config import Config
 
 
-def fazer_login(page: Page) -> bool:
+def fazer_login(context: BrowserContext) -> Page | None:
     """
-    Abre o Hyper e aguarda o usuário fazer login manualmente.
-    Retorna True quando a URL muda para /chats (prova de login).
+    Aguarda silenciosamente o usuário navegar para a URL correta em qualquer aba
+    e o botão de nova conversa ficar visível. Retorna a Page correspondente.
     """
-    try:
-        page.bring_to_front()
-    except Exception:
-        pass
-        
-    logger.info("Abrindo o Hyper no navegador...")
-    # Já estava logado e a página atual é válida?
-    if "/chats" in page.url:
-        logger.info("URL atual já é /chats. Verificando se a página está pronta...")
-        try:
-            # Tenta encontrar o botão com um timeout curto (aba pode estar morta ou recarregando)
-            btn = page.locator("button.button-add-chat").first
-            btn.wait_for(state="visible", timeout=5_000)
-            logger.success("Sessão já ativa e página pronta. Continuando automaticamente.")
-            return True
-        except Exception:
-            logger.warning("URL é /chats, mas a página não responde ou está vazia. Forçando recarregamento...")
-            page.goto(Config.HYPER_URL, wait_until="domcontentloaded", timeout=30_000)
-    else:
-        # Se não estava em /chats, navega e aguarda
-        page.goto(Config.HYPER_URL, wait_until="domcontentloaded", timeout=30_000)
-
-    # Instrução clara no terminal para o operador
     print("\n" + "=" * 55)
-    print("  🔐  FAÇA O LOGIN NO NAVEGADOR QUE ACABOU DE ABRIR")
-    print("      O bot continuará automaticamente após o login.")
-    print(f"      Você tem {Config.TIMEOUT_LOGIN_MANUAL} segundos.")
+    print("  🚀  AGUARDANDO O OPERADOR")
+    print("      Navegue manualmente até o Hyperflow (https://conversas.hyperflow.global/chats)")
+    print("      O bot iniciará automaticamente quando a tela estiver pronta.")
+    print(f"      Tempo limite de espera: {Config.TIMEOUT_LOGIN_MANUAL} segundos.")
     print("=" * 55 + "\n")
 
-    logger.info(f"Aguardando login manual (timeout: {Config.TIMEOUT_LOGIN_MANUAL}s)...")
-    logger.info(f"URL atual (login): {page.url}")
+    logger.info("Aguardando navegação manual ou login...")
 
-    try:
-        # 1. Aguarda a URL mudar para /chats (sinal inicial de login OK)
-        page.wait_for_url(
-            "**/chats**",
-            timeout=Config.TIMEOUT_LOGIN_MANUAL * 1000
-        )
-        logger.info("URL /chats detectada. Aguardando interface carregar...")
+    inicio = time.time()
+    limite = inicio + Config.TIMEOUT_LOGIN_MANUAL
 
-        # 2. NOVO: Ponto de falha corrigido.
-        # A nova interface do Hyper abre /chats mas demora para descarregar a tela branca.
-        # Aguardamos até 60s para o botão "+" de Nova Conversa aparecer.
-        btn_nova_conversa = page.locator("button.button-add-chat").first
-        btn_nova_conversa.wait_for(state="visible", timeout=60_000)
+    while time.time() < limite:
+        for page in context.pages:
+            try:
+                if "/chats" in page.url:
+                    btn = page.locator("button.button-add-chat").first
+                    if btn.is_visible():
+                        try:
+                            page.bring_to_front()
+                        except Exception:
+                            pass
+                        print("\n✅  Interface carregada! O bot vai iniciar agora.\n")
+                        logger.success(f"Página pronta e botão detectado! URL atual: {page.url}")
+                        return page
+            except Exception as e:
+                logger.debug(f"Aguardando renderização da página (erro temporário no polling ignorado): {e}")
+        
+        time.sleep(1)
 
-        # Login concluído e interface totalmente carregada
-        print("\n✅  Interface carregada! O bot vai iniciar agora.\n")
-        logger.success(f"Login e carregamento concluídos! URL: {page.url}")
-        return True
-
-    except PWTimeout as e:
-        logger.error(
-            f"Timeout aguardando login ou carregamento da tela: {e}. "
-            f"URL atual: {page.url} — Verifique se a página carregou corretamente."
-        )
-        return False
-    except Exception as e:
-        logger.error(f"Erro no processo de login/carregamento: {e}")
-        return False
-
-
-def _esta_logado(page: Page) -> bool:
-    """Verifica se a sessão já está ativa pela URL."""
-    return "/chats" in page.url
+    logger.error(f"Timeout de {Config.TIMEOUT_LOGIN_MANUAL}s atingido aguardando o Hyperflow.")
+    return None
