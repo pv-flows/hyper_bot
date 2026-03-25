@@ -22,10 +22,10 @@ Conecta ao seu Google Chrome real (evita bloqueio do Cloudflare) e processa uma 
 
 Se você está em um computador novo, siga estes passos:
 
-1. Instale o **Python 3.10+** em [python.org](https://www.python.org/downloads/) (marque **"Add Python to PATH"**).
+1. Instale o **Python 3.10+** na Windows Store ou em:  [python.org](https://www.python.org/downloads/) (marque **"Add Python to PATH"**).
 2. Copie a pasta do bot para o computador.
-3. Clique duas vezes no arquivo **`instalar.bat`**.
-4. Aguarde a conclusão. Ele criará o atalho **`Rodar Bot.bat`** automaticamente.
+3. Clique duas vezes no arquivo **`instalar`**.
+4. Aguarde a conclusão. Ele criará o atalho **`Rodar Bot`** automaticamente.
 
 ---
 
@@ -47,7 +47,7 @@ O instalador cria um arquivo `.env` para você. Abra-o com o Bloco de Notas e co
 ## Como executar o bot
 
 Basta clicar duas vezes no arquivo:
-**`Rodar Bot.bat`**
+**`Rodar Bot`**
 
 ### O que o bot faz:
 1. Abre o Google Chrome.
@@ -126,7 +126,7 @@ hyper_bot/
 │   └── filtro_alunos.xlsx   ← planilha de alunos
 ├── screenshots/
 │   └── erros/               ← capturas em caso de falha
-├── .env                     ← configurações (não compartilhar)
+├── .env                     ← configurações
 ├── .env.example             ← modelo de configuração
 └── requirements.txt         ← dependências Python
 ```
