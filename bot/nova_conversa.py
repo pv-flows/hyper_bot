@@ -29,6 +29,8 @@ def criar_conversa(page: Page, aluno: Aluno) -> bool:
         _fechar_modal(page)
         return False
     except Exception as e:
+        if str(e) == "CONTATO_JA_EM_ATENDIMENTO":
+            raise e
         logger.error(f"Erro ao processar {aluno.nome}: {e}")
         tirar_screenshot(page, f"erro_{aluno.telefone}")
         _fechar_modal(page)

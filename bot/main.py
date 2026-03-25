@@ -68,7 +68,7 @@ def fechar_chrome_existente():
 def main():
     configurar_logger()
     logger.info("=" * 50)
-    logger.info("BOT HYPER — Iniciando")
+    logger.info(f"BOT HYPER — Iniciando [Versão {Config.VERSAO}]")
     logger.info("=" * 50)
 
     # Valida planilha antes de abrir o navegador
@@ -176,6 +176,7 @@ def main():
 
             tentativa = 0
             ok = False
+            conflito_detectado = False
 
             while tentativa < Config.MAX_TENTATIVAS and not ok:
                 tentativa += 1
@@ -183,7 +184,16 @@ def main():
                     logger.warning(f"Tentativa {tentativa}/{Config.MAX_TENTATIVAS} para {aluno.nome}")
                     delay_humano(2.0, 4.0)
 
-                ok = criar_conversa(page, aluno)
+                try:
+                    ok = criar_conversa(page, aluno)
+                except Exception as e:
+                    if str(e) == "CONTATO_JA_EM_ATENDIMENTO":
+                        conflito_detectado = True
+                        break
+
+            if conflito_detectado:
+                pulados += 1
+                continue
 
             if ok:
                 marcar_processado(aluno.telefone, aluno.nome)
