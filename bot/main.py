@@ -48,19 +48,23 @@ def fechar_chrome_existente():
     """
     Encerra qualquer instância do Chrome antes de abrir com debug remoto.
     Necessário para liberar a porta 9222 — o Chrome normal não expõe CDP.
+    Usa /T para matar todos os processos filhos (raiz).
     """
     try:
-        subprocess.run(
-            ["taskkill", "/f", "/im", "chrome.exe"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        processos_para_matar = ["chrome.exe", "chrome_crashpad_handler.exe"]
+        for proc in processos_para_matar:
+            subprocess.run(
+                ["taskkill", "/F", "/IM", proc, "/T"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            
         for _ in range(10):
             filtro = subprocess.run(["tasklist", "/fi", "imagename eq chrome.exe"], capture_output=True, text=True)
             if "chrome.exe" not in filtro.stdout.lower():
                 break
             time.sleep(0.5)
-        logger.info("Instâncias anteriores do Chrome encerradas.")
+        logger.info("Instâncias anteriores do Chrome encerradas a partir da raiz.")
     except Exception as e:
         logger.warning(f"Erro ao tentar fechar o Chrome: {e}")
 
@@ -104,6 +108,7 @@ def main():
             "--no-first-run",
             "--no-default-browser-check",
             "--start-maximized",
+            "https://conversas.hyperflow.global/",
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -146,25 +151,14 @@ def main():
 
         context = browser.contexts[0] if browser.contexts else browser.new_context()
         
-        # Procura se já existe uma aba do Hyper aberta para reaproveitar
-        page = None
-        for p in context.pages:
-            if "hyperflow" in p.url:
-                page = p
-                break
-                
-        if not page:
-            page = context.pages[0] if context.pages else context.new_page()
-            
-        # Garante que a página sendo controlada venha para a frente (foco visual do usuário)
-        try:
-            page.bring_to_front()
-        except Exception:
-            pass
+        # Assegura que haja pelo menos uma aba visível (para caso o navegador inicie vazio)
+        if not context.pages:
+            context.new_page()
 
-        # Login manual — bot aguarda o usuário logar no Chrome
-        if not fazer_login(page):
-            logger.critical("Falha no login. Encerrando.")
+        # Login manual — bot aguarda o usuário navegar e logar no Chrome silenciomante
+        page = fazer_login(context)
+        if not page:
+            logger.critical("Falha ao aguardar a navegação e o login do usuário. Encerrando.")
             sys.exit(1)
 
         # Loop principal

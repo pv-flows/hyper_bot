@@ -9,6 +9,7 @@ logs/
 screenshots/
 data/processados.log
 data/chrome_profile/
+.agent/
 
 # Gerado automaticamente pelo instalador
 Rodar Bot.bat
