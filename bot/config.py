@@ -17,7 +17,7 @@ def _get(key: str, default=None, obrigatorio: bool = False) -> str:
 
 
 class Config:
-    VERSAO: str = "2.2"
+    VERSAO: str = "2.1"
     
     # Login manual — sem necessidade de e-mail/senha
     HYPER_URL: str       = _get("HYPER_URL", "https://conversas.hyperflow.global/chats")
