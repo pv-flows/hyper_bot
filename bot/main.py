@@ -186,6 +186,7 @@ def main():
                         break
 
             if conflito_detectado:
+                marcar_processado(aluno.telefone, f"{aluno.nome} [JA EM ATENDIMENTO]")
                 pulados += 1
                 continue
 
